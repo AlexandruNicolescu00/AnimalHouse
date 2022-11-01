@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const { createCustomError } = require("../errors/custom-error");
 
 const getAllProducts = async (req, res) => {
   const { featured, name, sort, fields, numericFilters } = req.query;
@@ -53,7 +54,58 @@ const getAllProducts = async (req, res) => {
   res.status(200).json(products);
 };
 
+const createProduct = async (req, res) => {
+  const product = await Product.create(req.body);
+  res.status(201).json({ product });
+};
+
+const getProduct = async (req, res) => {
+  const { id: productID } = req.params;
+  const product = await Product.findOne({ _id: productID });
+  if (!product) {
+    throw createCustomError(
+      `Non esiste nessun prodotto con id : ${productID}`,
+      404
+    );
+  }
+  res.status(200).json({ product });
+};
+
+const updateProduct = async (req, res) => {
+  const { id: productID } = req.params;
+  const product = await Product.findOneAndUpdate({ _id: productID }, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  if (!product) {
+    throw createCustomError(
+      `Non esiste nessun prodotto con id : ${productID}`,
+      404
+    );
+  }
+  res.status(200).json({ id: productID, data: req.body });
+};
+
+const deleteProduct = async (req, res) => {
+  const { id: productID } = req.params;
+  const product = await Product.findOneAndDelete({ _id: productID });
+  if (!product) {
+    throw createCustomError(
+      `Non esiste nessun prodotto con id : ${productID}`,
+      404
+    );
+  }
+  res
+    .status(200)
+    .json({
+      msg: `Il prodotto con id ${productID} è stato rimosso con successo`,
+    });
+};
+
 module.exports = {
   getAllProducts,
-  getAllProductsStatic,
+  createProduct,
+  getProduct,
+  updateProduct,
+  deleteProduct,
 };

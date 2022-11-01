@@ -43,7 +43,7 @@ const ProductSchema = new mongoose.Schema({
   },
   imgPath: {
     type: String,
-    default: path.join("..", "img", "default.jpg"),
+    default: path.join(__dirname, "..", "img", "default.jpg"),
   },
 });
 

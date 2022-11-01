@@ -14,6 +14,10 @@ const PostSchema = new mongoose.Schema({
       "Per postare sulla bacheca devi avere qualcosa da scrivere",
     ],
   },
+  date: {
+    type: Date,
+    default: Date.now(),
+  },
 });
 
 module.exports = mongoose.model("Post", PostSchema);
