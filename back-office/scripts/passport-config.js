@@ -1,9 +1,8 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
-const bcrypt = require('bcrypt');
-const connection = require(global.rootDir + '/scripts/database.js');
-const User = connection.models.users;
+const bcrypt = require('bcryptjs');
+const User = require('../models/users');
 
 // --------------------------------- LOCAL ---------------------------------
 

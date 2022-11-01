@@ -15,11 +15,9 @@ global.dbName = process.env.DB_NAME;
 //!!!USARE QUESTO URI PER LE MACCHINE DEL DIPARTIMENTO
 //global.mongouri = `mongodb://${global.mongoCredentials.user}:${global.mongoCredentials.pwd}@${global.mongoCredentials.site}?writeConcern=majority`;
 global.mongouri = `mongodb+srv://site212222:${global.mongoCredentials.pwd}@users.ctus6cf.mongodb.net/Animal_House?retryWrites=true&w=majority`;
-
 /*
  *---------- GENERAL SETUP ----------
  */
-
 const express = require("express");
 const cors = require("cors");
 const passport = require("passport");
@@ -27,6 +25,11 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const { engine } = require("express-handlebars");
 const path = require("path");
+const connectDB = require("./db/connect");
+const notFound = require("./middleware/not-found");
+const errorHandlerMiddleware = require("./middleware/error-handler");
+
+require("express-async-errors");
 
 const login_routes = require(path.join(__dirname, "routes", "login.js"));
 const admin_routes = require(path.join(__dirname, "routes", "admin.js"));
@@ -47,6 +50,8 @@ app.use(cors());
 app.use(express.json());
 
 app.enable("trust proxy");
+
+global.imgPath = path.join(__dirname, "img");
 
 /*
  *---------- HANDLEBARS ----------
@@ -102,7 +107,10 @@ app.use(passport.session());
 
 app.use("/", login_routes);
 app.use("/admin", admin_routes);
-app.use("/api", api_routes);
+app.use("/api/v1", api_routes);
+/* Da usare sempre come ultimo */
+app.use(notFound);
+app.use(errorHandlerMiddleware);
 
 /* 
 // TODO: Resolve /login and / conflict between game and backoffice
@@ -115,4 +123,14 @@ app.get('/game', (req, res) => {
  *---------- SERVER ----------
  */
 const port = 8000;
-app.listen(port, () => console.log(`app listening on port ${port}!`));
+
+const start = async () => {
+  try {
+    await connectDB(process.env.DB_URL);
+    app.listen(port, () => console.log(`app listening on port ${port}!`));
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+start();

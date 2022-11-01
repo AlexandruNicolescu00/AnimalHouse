@@ -1,18 +1,17 @@
 const router = require("express").Router();
-const connection = require(global.rootDir + "/scripts/database.js");
-const User = connection.models.users;
-const bcrypt = require("bcrypt");
 
-const genPassword = async (password, saltRounds = 10) => {
-  try {
-    // Hash password
-    return await bcrypt.hash(password, saltRounds);
-  } catch (error) {
-    console.log(error);
-  }
-  // Return null if error
-  return null;
-};
+const {
+  getAllUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+} = require("../controllers/users");
+
+router.route("/").get(getAllUsers)
+
+router.route("/:id").get(getUser).patch(updateUser).delete(deleteUser);
+
+module.exports = router;
 
 /* GET http://site212222.tw.cs.unibo.it/api/users */
 router.get("/", (req, res) => {
@@ -34,29 +33,8 @@ router.get("/", (req, res) => {
   });
 });
 
-/* GET http://site212222.tw.cs.unibo.it/api/users/{emailUtente} */
-router.get("/:email", (req, res) => {
-  const email = req.params.email;
-  const result = User.findOne({ email: email });
-  result.exec((err, data) => {
-    try {
-      if (err) {
-        throw err;
-      } else {
-        if (data) {
-          res.send(data);
-        } else {
-          throw "Nessun risultato";
-        }
-      }
-    } catch (error) {
-      res.status(401).send(error);
-    }
-  });
-});
-
 /* POST http://site212222.tw.cs.unibo.it/api/users/register */
-router.post("/register", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     if (!req.body.email || !req.body.password) {
       throw "Parametri mancanti";
@@ -103,29 +81,19 @@ router.post("/register", async (req, res) => {
   }
 });
 
-/* DELETE http://site212222.tw.cs.unibo.it/api/users/{ email } */
-router.delete("/:email", (req, res) => {
+/* GET http://site212222.tw.cs.unibo.it/api/users/{emailUtente} */
+router.get("/:email", (req, res) => {
   const email = req.params.email;
-  const findResult = User.findOne({ email: email });
-  findResult.exec((err, data) => {
+  const result = User.findOne({ email: email });
+  result.exec((err, data) => {
     try {
       if (err) {
         throw err;
       } else {
         if (data) {
-          const deleteResult = User.deleteOne({ email: email });
-          deleteResult.exec((err) => {
-            try {
-              if (err) {
-                throw err;
-              }
-              res.send(`${email} eliminato con successo!`);
-            } catch (error) {
-              res.status(401).send(error);
-            }
-          });
+          res.send(data);
         } else {
-          throw "Nessun risultato trovato";
+          throw "Nessun risultato";
         }
       }
     } catch (error) {
@@ -155,6 +123,37 @@ router.patch("/:email", (req, res) => {
               throw err;
             }
             res.send(data);
+          });
+        } else {
+          throw "Nessun risultato trovato";
+        }
+      }
+    } catch (error) {
+      res.status(401).send(error);
+    }
+  });
+});
+
+/* DELETE http://site212222.tw.cs.unibo.it/api/users/{ email } */
+router.delete("/:email", (req, res) => {
+  const email = req.params.email;
+  const findResult = User.findOne({ email: email });
+  findResult.exec((err, data) => {
+    try {
+      if (err) {
+        throw err;
+      } else {
+        if (data) {
+          const deleteResult = User.deleteOne({ email: email });
+          deleteResult.exec((err) => {
+            try {
+              if (err) {
+                throw err;
+              }
+              res.send(`${email} eliminato con successo!`);
+            } catch (error) {
+              res.status(401).send(error);
+            }
           });
         } else {
           throw "Nessun risultato trovato";
